@@ -1,14 +1,14 @@
 # AntiGravity 旗艦還原懶人包 (Personalized Version)
 
-本倉庫是專為您的 **Antigravity AI 編碼助理** 打造的全新 PC 一鍵還原與環境遷移方案。除保留了原版 NotebookLM、Firebase 及工作流指南外，特別加入了您**本地客製化的系統環境 (Git, Node, Python)、本地中文語言外掛、WPS 文檔操控 MCP 服務與 Firecrawl 爬蟲服務**，確保新電腦一鍵開箱即用。
+本倉庫是專為您的 **Antigravity AI 編碼助理** 打造的全新 PC 一鍵還原與環境遷移方案。除保留了原版 NotebookLM、Firebase 及工作流指南外，特別加入了您**本地客製化的系統環境 (Git, Node, Python)、本地中文語言外掛、WPS 文檔操控 MCP 服務、Firecrawl 爬蟲服務，以及離線一鍵漢化與還原管理控制面板**，確保新電腦一鍵開箱即用。
 
 ---
 
 ## 📂 倉庫結構與檔案說明
 
 ```text
-├── README.md                 # 倉庫說明文件
-├── SKILL.md                  # AI 助理一鍵安裝與部署引導入口
+├── README.md                 # 倉庫說明文件（已客製化更新）
+├── SKILL.md                  # AI 助理一鍵安裝與部署引導入口（已註冊新技能）
 ├── setup_antigravity.ps1     # 🚀 全新 PC 一鍵自動還原 PowerShell 腳本
 ├── 09-AntiGravity專屬懶人包.md # 詳細的服務連接教學手冊
 └── skills/                   # 各項還原模組獨立技能庫
@@ -22,7 +22,8 @@
     ├── 07-wps-office         # 部署客製化 WPS Office MCP 操作伺服器
     ├── 08-firecrawl          # 部署 Firecrawl MCP 全域爬蟲
     ├── 09-antigravity-app    # 還原全域 argv/mcp.json 設定及中文語言包
-    └── 10-install-all-premium# 一鍵部署上述全部 Premium 設定
+    ├── 10-install-all-premium# 一鍵部署上述全部 Premium 設定
+    └── 11-chinese-localization# 🇨🇳 【離線一鍵漢化與還原可視化管理控制台】
 ```
 
 ---
@@ -41,7 +42,21 @@ Set-ExecutionPolicy Bypass -Scope Process -Force
 將此 GitHub 倉庫網址貼給新 PC 上的 AI 助理，並對它說：
 > *"這是我的 Antigravity 還原懶人包 <您的倉庫地址>。請讀取 repo 的 SKILL.md 安裝入口，列出可用技能，並幫我自動安裝部署。"*
 
-AI 助理會自動識別各技能資料夾中的 `SKILL.md` 指令，並在新電腦上自動執行！
+---
+
+## 🇨🇳 離線一鍵中文漢化與還原面板 (L10N Dashboard)
+
+本倉庫內建了完整的離線漢化引擎（源自 `liominsb/Antigravity-Chinese-Localization`），您無需再下載其他第三方工具即可本地運行漢化或還原：
+
+### 1. 啟動管理面板
+1. 開啟終端機或檔案總管，進入倉庫的 `skills\11-chinese-localization\` 目錄。
+2. 雙擊運行 **`双击运行汉化.bat`**。
+3. 腳本將在背景啟動 Node.js 服務並自動為您開啟瀏覽器控制台：
+   👉 **`http://localhost:3388`**
+
+### 2. 網頁可視化操作
+* **一鍵漢化 (Localize App)**：自動備份您的原始 `app.asar` 為 `app.asar.bak`，並向 preload.js、menu.js、tray.js 注入精準的中文 UI DOM 翻譯，點擊即可完成漢化。
+* **一鍵還原英文 (Restore English)**：當程式升級、出錯或您想回歸官方英文原版時，點擊即可秒速覆蓋還原備份，100% 安全無殘留！
 
 ---
 

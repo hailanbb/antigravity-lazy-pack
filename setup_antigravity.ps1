@@ -188,6 +188,20 @@ Write-Host "正在透過 pip 安裝 notebooklm-mcp-cli 及 notebooklm-mcp..." -F
 Start-Process "cmd.exe" -ArgumentList "/c pip install notebooklm-mcp-cli notebooklm-mcp" -Wait -NoNewWindow
 Write-Host "[✔] NotebookLM MCP CLI 安裝完成。" -ForegroundColor Green
 
+# 7. 部署自訂 Skills
+Write-Host "`n7. 正在部署 Antigravity 專屬 Skills..." -ForegroundColor Cyan
+$LocalSkillsPath = Join-Path $GeminiPath "skills"
+if (-not (Test-Path $LocalSkillsPath)) {
+    New-Item -ItemType Directory -Path $LocalSkillsPath -Force | Out-Null
+}
+$RepoSkillsPath = Join-Path $PSScriptRoot "skills"
+if (Test-Path $RepoSkillsPath) {
+    Copy-Item -Path "$RepoSkillsPath\*" -Destination $LocalSkillsPath -Recurse -Force
+    Write-Host "[✔] 已成功將懶人包中的 Skills 部署到 $LocalSkillsPath" -ForegroundColor Green
+} else {
+    Write-Host "[!] 找不到目前的 skills 目錄，請確認您已完整下載懶人包" -ForegroundColor Yellow
+}
+
 Write-Host "`n=========================================" -ForegroundColor Cyan
 Write-Host "   環境還原與自動配置成功完成！        " -ForegroundColor Green
 Write-Host "=========================================" -ForegroundColor Cyan

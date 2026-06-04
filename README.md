@@ -11,23 +11,21 @@
 ├── SKILL.md                  # AI 助理一鍵安裝與部署引導入口（已註冊全部技能）
 ├── setup_antigravity.ps1     # 🚀 全新 PC 一鍵自動還原 PowerShell 腳本
 ├── 09-AntiGravity專屬懶人包.md # 詳細的服務連接教學手冊
-└── skills/                   # 各項還原模組獨立技能庫
-    ├── 00-install-all        # 一次安裝原版基礎技能
-    ├── 01-notebooklm         # 連接 NotebookLM MCP
-    ├── 02-github             # 連接 GitHub CLI 授權
-    ├── 03-firebase           # 連接 Firebase MCP
-    ├── 04-draw               # 生圖指引
-    ├── 05-workflow           # 自動化開工/收工/專案初始化
-    ├── 06-env-setup          # 部署 Git, Node.js, Python, gh-cli 環境
-    ├── 07-wps-office         # 部署客製化 WPS Office MCP 操作伺服器
-    ├── 08-firecrawl          # 部署 Firecrawl MCP 全域爬蟲
-    ├── 09-antigravity-app    # 還原全域 argv/mcp.json 設定及中文語言包
-    ├── 10-install-all-premium# 一鍵部署上述全部 Premium 設定
-    ├── 11-chinese-localization# 🇨🇳 離線一鍵漢化與還原可視化管理控制台
-    ├── 12-self-improvement   # 🧠 【新增】自我進化技能 (記錄錯誤與踩坑知識庫)
-    ├── 13-antigravity-design-expert # 🎨 【新增】Antigravity 視覺運動與 3D UI 設計專家
-    ├── 14-antigravity-skill-orchestrator # 🤖 【新增】技能調度協調器 (動態多工協同)
-    └── 15-antigravity-workflows # 🚀 【新增】SaaS MVP / 安全審計流程策劃大師
+├── installed_skills.xlsx     # 📊 最新整理的本地已安裝技能清單 (包含 12 個強大外掛)
+└── skills/                   # 各項還原模組與獨立技能庫
+    ├── 00-install-all 到 15-antigravity-workflows # 基礎環境部署與核心技能
+    ├── ai-word-skill         # Python 操作 Word 文檔腳本
+    ├── antigravity-skill-orchestrator # 技能調度協調器 (元技能)
+    ├── baoxiao-skill         # 報銷/貼發票整理與 OCR 提取
+    ├── bid-proposal-skill-zh # 中文標書與售前方案生成
+    ├── contract-review-skill-zh # 中文合同風險初篩與審查
+    ├── darwin-skill          # 自主技能優化器
+    ├── html-ppt-skill        # HTML PPT Studio 簡報生成
+    ├── onboarding-mentoring-plan-skill-zh # 新員工入職帶教計畫
+    ├── ppt-director          # PPT 總導演，規劃與生成 PPTX
+    ├── self-improvement      # 🧠 自我進化與糾錯引擎
+    ├── skill-creator         # 建立與測量技能性能
+    └── training-courseware-generation-skill-zh # 企業內訓課件與課程包生成
 ```
 
 ---

@@ -14,7 +14,17 @@
 ├── 09-AntiGravity專屬懶人包.md # 詳細的服務連接教學手冊
 └── skills/                   # 各項還原模組獨立技能庫
     ├── 00-install-all        # 一次安裝原版基礎技能
-    ├── ... (其餘模組省略)
+    ├── 01-notebooklm         # 連接 NotebookLM MCP
+    ├── 02-github             # 連接 GitHub CLI 授權
+    ├── 03-firebase           # 連接 Firebase MCP
+    ├── 04-draw               # 生圖指引
+    ├── 05-workflow           # 自動化開工/收工/專案初始化
+    ├── 06-env-setup          # 部署 Git, Node.js, Python, gh-cli 環境
+    ├── 07-wps-office         # 部署客製化 WPS Office MCP 操作伺服器
+    ├── 08-firecrawl          # 部署 Firecrawl MCP 全域爬蟲
+    ├── 09-antigravity-app    # 還原全域 argv/mcp.json 設定及中文語言包
+    ├── 10-install-all-premium# 一鍵部署上述全部 Premium 設定
+    ├── 11-chinese-localization# 離線一鍵漢化與還原可視化管理控制台
     ├── 12-self-improvement   # 🧠 自我進化技能 (記錄錯誤與踩坑知識庫)
     ├── 13-antigravity-design-expert # 🎨 Antigravity 視覺運動與 3D UI 設計專家
     ├── 14-antigravity-skill-orchestrator # 🤖 技能調度協調器 (動態多工協同)

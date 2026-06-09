@@ -1,4 +1,4 @@
-# Antigravity 全新 PC 一鍵還原與環境部署指令檔
+﻿# Antigravity 全新 PC 一鍵還原與環境部署指令檔
 # 適用系統: Windows 10 / Windows 11
 # 語系: 繁體中文 / 簡體中文
 
@@ -8,10 +8,12 @@ Write-Host "=========================================" -ForegroundColor Cyan
 Write-Host "   Antigravity AI 助理全新 PC 部署工具   " -ForegroundColor Cyan
 Write-Host "=========================================" -ForegroundColor Cyan
 Write-Host "此指令檔將自動為您在新電腦上安裝與配置所有相依環境、MCP 服務及設定檔。" -ForegroundColor Yellow
-Write-Host "新電腦使用者目錄: $env:USERPROFILE" -ForegroundColor Gray
+Write-Host "新電腦使用者目錄: `$env:USERPROFILE" -ForegroundColor Gray
 Write-Host "=========================================" -ForegroundColor Cyan
 
-# 1. 偵測與安裝系統基礎軟體 (Git, Node.js, Python)
+# ---------------------------------------------------------
+# 輔助函式：檢查與安裝 Winget 軟體
+# ---------------------------------------------------------
 function Check-And-Install-Winget {
     param (
         [string]$Name,
@@ -32,22 +34,51 @@ function Check-And-Install-Winget {
         try {
             Write-Host "正在執行: winget install --id $WingetId --silent --accept-source-agreements --accept-package-agreements" -ForegroundColor Cyan
             Start-Process "winget" -ArgumentList "install --id $WingetId --silent --accept-source-agreements --accept-package-agreements" -Wait -NoNewWindow
-            Write-Host "[✔] $Name 安裝成功，請重啟此 PowerShell 視窗以套用環境變數！" -ForegroundColor Green
+            Write-Host "[✔] $Name 安裝指令執行完畢。" -ForegroundColor Green
         } catch {
             Write-Host "[!] 自動安裝 $Name 失敗，請稍後手動下載安裝 (ID: $WingetId)" -ForegroundColor Red
+            throw "無法安裝必要組件 $Name"
         }
     }
 }
 
-# 執行系統相依套件檢查與安裝
-Write-Host "`n1. 正在檢查基礎開發工具套件..." -ForegroundColor Cyan
+# ---------------------------------------------------------
+# 第一階段：基礎環境部署 (Git, Node.js, Python, gh-cli)
+# ---------------------------------------------------------
+Write-Host "`n=========================================" -ForegroundColor Magenta
+Write-Host " 第一階段：安裝部署基礎開發環境" -ForegroundColor Magenta
+Write-Host "=========================================" -ForegroundColor Magenta
+
 Check-And-Install-Winget "Git" "git --version" "Git.Git"
 Check-And-Install-Winget "Node.js" "node --version" "OpenJS.NodeJS.LTS"
 Check-And-Install-Winget "Python" "python --version" "Python.Python.3.11"
 Check-And-Install-Winget "GitHub CLI" "gh --version" "GitHub.cli"
 
-# 2. 建立目錄結構
-Write-Host "`n2. 正在建立 Antigravity 與 Gemini 設定目錄..." -ForegroundColor Cyan
+Write-Host "`n正在重新加載環境變數 PATH..." -ForegroundColor Cyan
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+
+# 驗證第一階段
+Write-Host "正在驗證第一階段環境..." -ForegroundColor Cyan
+$Phase1Pass = $true
+foreach ($cmd in @("git", "node", "python", "gh")) {
+    try {
+        Get-Command $cmd -ErrorAction Stop | Out-Null
+        Write-Host "  [✔] $cmd 環境變數驗證成功。" -ForegroundColor Green
+    } catch {
+        Write-Host "  [!] 無法呼叫 $cmd ，可能需要重啟 PowerShell 或手動加入系統變數。" -ForegroundColor Red
+        $Phase1Pass = $false
+    }
+}
+
+if (-not $Phase1Pass) {
+    Write-Host "`n[錯誤] 第一階段基礎環境安裝存在異常或環境變數未生效。請重啟 PowerShell 視窗後再試一次！" -ForegroundColor Red
+    exit 1
+} else {
+    Write-Host "[✔] 第一階段完成！具備下一階段環境條件。" -ForegroundColor Green
+}
+
+# 建立相關目錄
+Write-Host "`n正在建立 Antigravity 與 Gemini 設定目錄..." -ForegroundColor Cyan
 $GeminiPath = Join-Path $env:USERPROFILE ".gemini\antigravity"
 $GeminiScratch = Join-Path $GeminiPath "scratch"
 $GeminiBin = Join-Path $GeminiPath "bin"
@@ -57,78 +88,91 @@ $PathsToCreate = @($GeminiScratch, $GeminiBin, $AntigravityGlobalPath)
 foreach ($Path in $PathsToCreate) {
     if (-not (Test-Path $Path)) {
         New-Item -ItemType Directory -Path $Path -Force | Out-Null
-        Write-Host "已建立目錄: $Path" -ForegroundColor Green
-    } else {
-        Write-Host "目錄已存在: $Path" -ForegroundColor Gray
     }
 }
 
-# 3. 寫入全域設定檔 .antigravity\mcp.json
-Write-Host "`n3. 正在寫入全域 MCP 設定檔 (mcp.json)..." -ForegroundColor Cyan
-$McpJsonContent = @"
-{
-  "mcpServers": {
-    "notebooklm": {
-      "command": "nlm",
-      "args": ["mcp"],
-      "disabled": false
-    },
-    "firebase": {
-      "command": "npx.cmd",
-      "args": ["-y", "firebase-tools@latest", "mcp"],
-      "disabled": false
-    }
-  }
+# ---------------------------------------------------------
+# 第二階段：安裝各種 Skills
+# ---------------------------------------------------------
+Write-Host "`n=========================================" -ForegroundColor Magenta
+Write-Host " 第二階段：部署自定義技能 (Skills)" -ForegroundColor Magenta
+Write-Host "=========================================" -ForegroundColor Magenta
+
+$GlobalSkillsPath = Join-Path $GeminiPath "skills"
+if (-not (Test-Path $GlobalSkillsPath)) {
+    New-Item -ItemType Directory -Path $GlobalSkillsPath -Force | Out-Null
 }
-"@
+
+$RepoSkillsPath = Join-Path $PSScriptRoot "skills"
+$Phase2Pass = $false
+
+if (Test-Path $RepoSkillsPath) {
+    $SkillDirs = Get-ChildItem -Path $RepoSkillsPath -Directory
+    if ($SkillDirs.Count -gt 0) {
+        foreach ($dir in $SkillDirs) {
+            $SkillDirName = $dir.Name
+            $CleanName = $SkillDirName -replace '^\d+-'
+            $SrcSkillMd = Join-Path $dir.FullName "SKILL.md"
+            $DestSkillMd = Join-Path $GlobalSkillsPath "$CleanName.md"
+            
+            if (Test-Path $SrcSkillMd) {
+                Copy-Item -Path $SrcSkillMd -Destination $DestSkillMd -Force
+                Write-Host "  已安裝技能描述: $CleanName.md" -ForegroundColor Green
+            }
+            
+            $DestSkillFolder = Join-Path $GlobalSkillsPath "$CleanName-v1"
+            Copy-Item -Path $dir.FullName -Destination $DestSkillFolder -Recurse -Force | Out-Null
+        }
+        $Phase2Pass = $true
+    } else {
+        Write-Host "  [提示] skills 目錄為空，沒有需要部署的技能。" -ForegroundColor Gray
+        $Phase2Pass = $true
+    }
+} else {
+    Write-Host "  [!] 未能在倉庫中找到 skills 目錄，跳過自定義技能部署。" -ForegroundColor Yellow
+    # 這裡仍然放行，因為可能用戶真的沒放 skill
+    $Phase2Pass = $true
+}
+
+# 驗證第二階段
+if (Test-Path $GlobalSkillsPath) {
+    Write-Host "[✔] 第二階段完成！自定義技能已部署至: $GlobalSkillsPath" -ForegroundColor Green
+}
+
+# ---------------------------------------------------------
+# 第三階段：安裝 MCP
+# ---------------------------------------------------------
+Write-Host "`n=========================================" -ForegroundColor Magenta
+Write-Host " 第三階段：配置與安裝 MCP 服務" -ForegroundColor Magenta
+Write-Host "=========================================" -ForegroundColor Magenta
+
+# 1. 寫入全域設定檔 .antigravity\mcp.json (適用於某些系統元件)
+Write-Host "正在寫入全域 MCP 設定檔 (mcp.json)..." -ForegroundColor Cyan
+$McpGlobalConfig = @{
+    mcpServers = @{
+        "notebooklm" = @{
+            command = "nlm"
+            args = @("mcp")
+            disabled = $false
+        }
+        "firebase" = @{
+            command = "npx.cmd"
+            args = @("-y", "firebase-tools@latest", "mcp")
+            disabled = $false
+        }
+    }
+}
 $McpJsonPath = Join-Path $AntigravityGlobalPath "mcp.json"
-Set-Content -Path $McpJsonPath -Value $McpJsonContent -Encoding utf8
-Write-Host "[✔] 已寫入: $McpJsonPath" -ForegroundColor Green
+$McpGlobalConfig | ConvertTo-Json -Depth 5 | Set-Content -Path $McpJsonPath -Encoding utf8
+Write-Host "  已寫入: $McpJsonPath" -ForegroundColor Green
 
 # 寫入全域 argv.json
-$ArgvJsonContent = @"
-{
-  "enable-crash-reporter": true,
-  "locale": "zh-cn"
+$ArgvConfig = @{
+    "enable-crash-reporter" = $true
+    locale = "zh-cn"
 }
-"@
 $ArgvJsonPath = Join-Path $AntigravityGlobalPath "argv.json"
-Set-Content -Path $ArgvJsonPath -Value $ArgvJsonContent -Encoding utf8
-Write-Host "[✔] 已寫入: $ArgvJsonPath" -ForegroundColor Green
-
-# 4. 寫入局部設定檔 .gemini\antigravity\mcp_config.json (自動適配新電腦使用者目錄)
-Write-Host "`n4. 正在寫入局部 mcp_config.json..." -ForegroundColor Cyan
-
-# 處理雙斜線路徑以適應 JSON 格式
-$EscapedUserProfile = $env:USERPROFILE -replace '\\', '\\\\'
-$McpConfigContent = @"
-{
-  "mcpServers": {
-    "notebooklm": {
-      "command": "notebooklm-mcp",
-      "args": []
-    },
-    "wps-office": {
-      "command": "node",
-      "args": [
-        "${EscapedUserProfile}\\\\.gemini\\\\antigravity\\\\scratch\\\\wps-skills\\\\wps-office-mcp\\\\dist\\\\index.js"
-      ]
-    },
-    "firecrawl-mcp": {
-      "command": "node",
-      "args": [
-        "${EscapedUserProfile}\\\\AppData\\\\Roaming\\\\npm\\\\node_modules\\\\firecrawl-mcp\\\\dist\\\\index.js"
-      ],
-      "env": {
-        "FIRECRAWL_API_KEY": "fc-d511444e155846638561b5c335ebcb81"
-      }
-    }
-  }
-}
-"@
-$McpConfigPath = Join-Path $GeminiPath "mcp_config.json"
-Set-Content -Path $McpConfigPath -Value $McpConfigContent -Encoding utf8
-Write-Host "[✔] 已寫入並自動適配路徑: $McpConfigPath" -ForegroundColor Green
+$ArgvConfig | ConvertTo-Json -Depth 5 | Set-Content -Path $ArgvJsonPath -Encoding utf8
 
 # 寫入 antigravity_state.pbtxt (避免重複引導)
 $StatePbContent = @"
@@ -151,55 +195,97 @@ migrate_retroactive_projects:  RETROACTIVE_MIGRATION_STATUS_COMPLETED_UNNECESSAR
 "@
 $StatePbPath = Join-Path $GeminiPath "antigravity_state.pbtxt"
 Set-Content -Path $StatePbPath -Value $StatePbContent -Encoding utf8
-Write-Host "[✔] 已寫入狀態檔以跳過首次導覽: $StatePbPath" -ForegroundColor Green
 
-# 5. 下載與部署 WPS 輔助擴充 (wps-skills)
-Write-Host "`n5. 正在下載與編譯 WPS Office MCP 服務..." -ForegroundColor Cyan
+# 2. 下載與編譯 WPS 擴充
+Write-Host "`n正在下載與編譯 WPS Office MCP 服務..." -ForegroundColor Cyan
 $WpsSkillsPath = Join-Path $GeminiScratch "wps-skills"
+$WpsCompileSuccess = $false
+try {
+    if (Test-Path $WpsSkillsPath) {
+        Write-Host "  WPS skills 目錄已存在，正在拉取最新代碼..." -ForegroundColor Gray
+        $p = Start-Process "git" -ArgumentList "-C `"$WpsSkillsPath`" pull" -PassThru -Wait -NoNewWindow
+    } else {
+        Write-Host "  正在克隆 wps-skills 儲存庫..." -ForegroundColor Cyan
+        $p = Start-Process "git" -ArgumentList "clone https://github.com/lc2panda/wps-skills.git `"$WpsSkillsPath`"" -PassThru -Wait -NoNewWindow
+    }
 
-if (Test-Path $WpsSkillsPath) {
-    Write-Host "WPS skills 目錄已存在，正在拉取最新代碼..." -ForegroundColor Gray
-    Start-Process "git" -ArgumentList "-C `"$WpsSkillsPath`" pull" -Wait -NoNewWindow
-} else {
-    Write-Host "正在克隆 wps-skills 儲存庫..." -ForegroundColor Cyan
-    Start-Process "git" -ArgumentList "clone https://github.com/lc2panda/wps-skills.git `"$WpsSkillsPath`"" -Wait -NoNewWindow
+    $WpsMcpPath = Join-Path $WpsSkillsPath "wps-office-mcp"
+    if (Test-Path $WpsMcpPath) {
+        Write-Host "  進入 wps-office-mcp 安裝依賴並編譯..." -ForegroundColor Cyan
+        $p = Start-Process "cmd.exe" -ArgumentList "/c cd /d `"$WpsMcpPath`" && npm install && npm run build" -PassThru -Wait -NoNewWindow
+        if ($p.ExitCode -eq 0) {
+            Write-Host "  [✔] WPS Office MCP 編譯成功！" -ForegroundColor Green
+            $WpsCompileSuccess = $true
+        } else {
+            Write-Host "  [!] WPS 編譯失敗。" -ForegroundColor Yellow
+        }
+    }
+} catch {
+    Write-Host "  [!] 配置 WPS Office MCP 發生例外錯誤：$_" -ForegroundColor Yellow
 }
 
-$WpsMcpPath = Join-Path $WpsSkillsPath "wps-office-mcp"
-if (Test-Path $WpsMcpPath) {
-    Write-Host "進入 wps-office-mcp 安裝依賴並編譯..." -ForegroundColor Cyan
-    # 使用 cmd.exe 執行 npm 以免腳本中斷
-    Start-Process "cmd.exe" -ArgumentList "/c cd /d `"$WpsMcpPath`" && npm install && npm run build" -Wait -NoNewWindow
-    Write-Host "[✔] WPS Office MCP 服務安裝與編譯成功！" -ForegroundColor Green
-} else {
-    Write-Host "[!] 找不到 wps-office-mcp 目錄，請檢查 GitHub 儲存庫下載是否完整。" -ForegroundColor Red
+# 3. 安裝 Node 全域 MCP (firecrawl-mcp)
+Write-Host "`n正在安裝 firecrawl-mcp..." -ForegroundColor Cyan
+$FirecrawlSuccess = $false
+try {
+    $p = Start-Process "cmd.exe" -ArgumentList "/c npm install -g firecrawl-mcp" -PassThru -Wait -NoNewWindow
+    if ($p.ExitCode -eq 0) {
+        Write-Host "  [✔] firecrawl-mcp 安裝完成。" -ForegroundColor Green
+        $FirecrawlSuccess = $true
+    }
+} catch { Write-Host "  [!] 安裝 firecrawl-mcp 發生異常。" -ForegroundColor Yellow }
+
+# 4. 安裝 Python 全域 MCP (notebooklm-mcp)
+Write-Host "`n正在安裝 NotebookLM MCP..." -ForegroundColor Cyan
+$NotebookLmSuccess = $false
+try {
+    $p = Start-Process "cmd.exe" -ArgumentList "/c python -m pip install --upgrade pip && python -m pip install notebooklm-mcp-cli notebooklm-mcp" -PassThru -Wait -NoNewWindow
+    if ($p.ExitCode -eq 0) {
+        Write-Host "  [✔] NotebookLM MCP CLI 安裝完成。" -ForegroundColor Green
+        $NotebookLmSuccess = $true
+    }
+} catch { Write-Host "  [!] 安裝 NotebookLM MCP 發生異常。" -ForegroundColor Yellow }
+
+# 5. 寫入自定義 MCP 配置 (mcp_config.json)
+Write-Host "`n正在寫入 Antigravity 自定義 MCP 註冊檔 (mcp_config.json)..." -ForegroundColor Cyan
+$FirecrawlApiKey = Read-Host "請輸入您的 Firecrawl API Key (若無請直接按回車跳過)"
+if ([string]::IsNullOrWhiteSpace($FirecrawlApiKey)) {
+    $FirecrawlApiKey = ""
 }
 
-# 6. 安裝 Python 和 NPM 全域 MCP 依賴
-Write-Host "`n6. 正在安裝 Python 和 Node 全域 MCP 服務..." -ForegroundColor Cyan
-
-# 安裝 firecrawl-mcp
-Write-Host "正在安裝 Node 全域套件 firecrawl-mcp..." -ForegroundColor Cyan
-Start-Process "cmd.exe" -ArgumentList "/c npm install -g firecrawl-mcp" -Wait -NoNewWindow
-Write-Host "[✔] firecrawl-mcp 安裝完成。" -ForegroundColor Green
-
-# 安裝 notebooklm-mcp-cli 及其相依
-Write-Host "正在透過 pip 安裝 notebooklm-mcp-cli 及 notebooklm-mcp..." -ForegroundColor Cyan
-Start-Process "cmd.exe" -ArgumentList "/c pip install notebooklm-mcp-cli notebooklm-mcp" -Wait -NoNewWindow
-Write-Host "[✔] NotebookLM MCP CLI 安裝完成。" -ForegroundColor Green
-
-# 7. 部署自訂 Skills
-Write-Host "`n7. 正在部署 Antigravity 專屬 Skills..." -ForegroundColor Cyan
-$LocalSkillsPath = Join-Path $GeminiPath "skills"
-if (-not (Test-Path $LocalSkillsPath)) {
-    New-Item -ItemType Directory -Path $LocalSkillsPath -Force | Out-Null
+$McpConfig = @{
+    mcpServers = @{
+        "notebooklm" = @{
+            command = "notebooklm-mcp"
+            args = @()
+        }
+        "wps-office" = @{
+            command = "node"
+            args = @(
+                "$env:USERPROFILE\.gemini\antigravity\scratch\wps-skills\wps-office-mcp\dist\index.js"
+            )
+        }
+        "firecrawl-mcp" = @{
+            command = "node"
+            args = @(
+                "$env:USERPROFILE\AppData\Roaming\npm\node_modules\firecrawl-mcp\dist\index.js"
+            )
+            env = @{
+                FIRECRAWL_API_KEY = $FirecrawlApiKey
+            }
+        }
+    }
 }
-$RepoSkillsPath = Join-Path $PSScriptRoot "skills"
-if (Test-Path $RepoSkillsPath) {
-    Copy-Item -Path "$RepoSkillsPath\*" -Destination $LocalSkillsPath -Recurse -Force
-    Write-Host "[✔] 已成功將懶人包中的 Skills 部署到 $LocalSkillsPath" -ForegroundColor Green
+$McpConfigPath = Join-Path $GeminiPath "mcp_config.json"
+# 使用 ConvertTo-Json 確保所有路徑的反斜線被正確編碼，避免 UI 讀取異常
+$McpConfig | ConvertTo-Json -Depth 5 | Set-Content -Path $McpConfigPath -Encoding utf8
+Write-Host "  [✔] 已寫入並修復路徑格式: $McpConfigPath" -ForegroundColor Green
+
+# 驗證第三階段
+if ($WpsCompileSuccess -and $FirecrawlSuccess -and $NotebookLmSuccess -and (Test-Path $McpConfigPath)) {
+    Write-Host "[✔] 第三階段完成！所有 MCP 服務配置無誤。" -ForegroundColor Green
 } else {
-    Write-Host "[!] 找不到目前的 skills 目錄，請確認您已完整下載懶人包" -ForegroundColor Yellow
+    Write-Host "[!] 第三階段完成，但有部分服務未能順利編譯或下載，請參考上方日誌排除錯誤。" -ForegroundColor Yellow
 }
 
 Write-Host "`n=========================================" -ForegroundColor Cyan
@@ -213,5 +299,5 @@ Write-Host "   nlm login" -ForegroundColor Cyan
 Write-Host "3. 登入 Firebase 授權: " -ForegroundColor White
 Write-Host "   npx.cmd -y firebase-tools@latest login" -ForegroundColor Cyan
 Write-Host "4. 請將原本電腦中的 Antigravity 應用程式安裝包 (或 AppData\Local\Programs\antigravity 資料夾) 複製到新電腦並啟動。" -ForegroundColor Yellow
-Write-Host "如有任何疑問，請隨時重啟 Antigravity 並向我發問！" -ForegroundColor Cyan
+Write-Host "如有任何疑問，請隨時重啟 Antigravity 並向我發问！" -ForegroundColor Cyan
 Write-Host "=========================================" -ForegroundColor Cyan

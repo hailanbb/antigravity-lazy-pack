@@ -9,73 +9,53 @@
 ```text
 ├── README.md                 # 倉庫說明文件（已升級客製化）
 ├── SKILL.md                  # AI 助理一鍵安裝與部署引導入口（已註冊全部技能）
-├── setup_antigravity.ps1     # 🚀 全新 PC 一鍵自動還原 PowerShell 腳本
+├── setup_antigravity.ps1     # 🚀 全新 PC 三階段一鍵自動還原腳本 (修復 MCP 面板不可見問題)
+├── reset_antigravity.ps1     # 🧹 【新增】環境強制清理與重置腳本 (用於還原初始狀態與 PC 維護)
 ├── 09-AntiGravity專屬懶人包.md # 詳細的服務連接教學手冊
-├── installed_skills.xlsx     # 📊 最新整理的本地已安裝技能清單 (包含 12 個強大外掛)
-└── skills/                   # 各項還原模組與獨立技能庫
+└── skills/                   # 各項還原模組獨立技能庫
     ├── 00-install-all        # 一次安裝原版基礎技能
-    ├── 01-notebooklm         # 連接 NotebookLM MCP
-    ├── 02-github             # 連接 GitHub CLI 授權
-    ├── 03-firebase           # 連接 Firebase MCP
-    ├── 04-draw               # 生圖指引
-    ├── 05-workflow           # 自動化開工/收工/專案初始化
-    ├── 06-env-setup          # 部署 Git, Node.js, Python, gh-cli 環境
-    ├── 07-wps-office         # 部署客製化 WPS Office MCP 操作伺服器
-    ├── 08-firecrawl          # 部署 Firecrawl MCP 全域爬蟲
-    ├── 09-antigravity-app    # 還原全域 argv/mcp.json 設定及中文語言包
-    ├── 10-install-all-premium# 一鍵部署上述全部 Premium 設定
-    ├── 11-chinese-localization# 🇨🇳 離線一鍵漢化與還原可視化管理控制台
-    ├── 12-self-improvement   # 原版自我進化技能
-    ├── 13-antigravity-design-expert # 原版視覺運動與 3D UI 設計專家
-    ├── 14-antigravity-skill-orchestrator # 原版技能調度協調器
-    ├── 15-antigravity-workflows # SaaS MVP / 安全審計流程策劃大師
-    ├── ai-word-skill         # 【新增】Python 操作 Word 文檔腳本
-    ├── antigravity-skill-orchestrator # 【新增】新版技能調度協調器 (元技能)
-    ├── baoxiao-skill         # 【新增】報銷/貼發票整理與 OCR 提取
-    ├── bid-proposal-skill-zh # 【新增】中文標書與售前方案生成
-    ├── contract-review-skill-zh # 【新增】中文合同風險初篩與審查
-    ├── darwin-skill          # 【新增】自主技能優化器
-    ├── html-ppt-skill        # 【新增】HTML PPT Studio 簡報生成
-    ├── onboarding-mentoring-plan-skill-zh # 【新增】新員工入職帶教計畫
-    ├── ppt-director          # 【新增】PPT 總導演，規劃與生成 PPTX
-    ├── self-improvement      # 【新增】新版自我進化與糾錯引擎
-    ├── skill-creator         # 【新增】建立與測量技能性能
-    └── training-courseware-generation-skill-zh # 【新增】企業內訓課件與課程包生成
+    ├── ... (其餘模組省略)
+    ├── 12-self-improvement   # 🧠 自我進化技能 (記錄錯誤與踩坑知識庫)
+    ├── 13-antigravity-design-expert # 🎨 Antigravity 視覺運動與 3D UI 設計專家
+    ├── 14-antigravity-skill-orchestrator # 🤖 技能調度協調器 (動態多工協同)
+    └── 15-antigravity-workflows # 🚀 SaaS MVP / 安全審計流程策劃大師
 ```
 
 ---
 
 ## 🚀 部署與使用方式
 
-### 方式一：全新 PC 一鍵還原（強烈推薦）
-在新電腦上打包主程式後，下載本倉庫並以**系統管理員權限**啟動 PowerShell，執行根目錄下的一鍵指令檔：
-```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force
-.\setup_antigravity.ps1
-```
-> 指令檔會自動偵測並安裝所有開發工具（Git、Node、Python）、配置目錄與設定檔、動態對齊新用戶路徑，並完成 `wps-skills` 克隆與 TypeScript 編譯，實現 99% 的全自動部署。
+### 方式一：全新 PC 一鍵全自動下載與還原（強烈推薦）
+在最新的版本中，我們將下載倉庫與執行的步驟整合為一句自動化指令。只需在新電腦上以**系統管理員權限啟動 PowerShell**，並複製貼上以下指令：
 
-### 方式二：交給您的新電腦 AI 助理執行
-將此 GitHub 倉庫網址貼給新 PC 上的 AI 助理，並對它說：
-> *"這是我的 Antigravity 還原懶人包 <您的倉庫地址>。請讀取 repo 的 SKILL.md 安裝入口，列出可用技能，並幫我自動安裝部署。"*
+```powershell
+Set-ExecutionPolicy Bypass -Scope Process -Force; Invoke-WebRequest -Uri "https://github.com/hailanbb/antigravity-lazy-pack/archive/refs/heads/main.zip" -OutFile "$env:TEMP\lazy-pack.zip"; Expand-Archive -Path "$env:TEMP\lazy-pack.zip" -DestinationPath "$env:TEMP\lazy-pack" -Force; Set-Location "$env:TEMP\lazy-pack\antigravity-lazy-pack-main"; .\setup_antigravity.ps1
+```
+
+> 此指令將自動從 GitHub 下載最新版懶人包、解壓縮到系統暫存資料夾，並直接觸發 `setup_antigravity.ps1`，讓您連「點擊下載」的步驟都省了！
+
+**腳本會執行以下三個階段：**
+1. **第一階段：基礎環境部署**
+   自動安裝 Git, Node.js, Python, gh-cli，並重新加載 PATH 變數以進行嚴格驗證，確保環境就緒。
+2. **第二階段：部署自定義技能**
+   自動將 `skills` 目錄中的資源無縫拷貝至全域目錄。
+3. **第三階段：配置與安裝 MCP 服務**
+   動態克隆並編譯 WPS Office、Firecrawl 與 NotebookLM 等 MCP 服務。**此階段已修復 `mcp_config.json` 路徑反斜線格式轉義異常的問題，確保所有服務均能在 Antigravity 2.0.11 中正常顯示。**
 
 ---
 
-## 🧠 新增核心技能亮點介紹
+## 🧹 環境維護：一鍵重置指令
 
-### 1. 自我進化技能 (`12-self-improvement`)
-* 這是專為 AI 助理設計的**反思與學習引擎**。當遇到命令報錯、外部 API 斷開、使用者指正（"不对，這裏應該是..."）或踩坑時，助理會自動在專案的 `.learnings/` 底下寫入 `LEARNINGS.md` 與 `ERRORS.md`。
-* 在下一次面對類似任務時，助理會自動讀取並避開歷史錯誤，實現持續的自我進化與修正。
+為了防止安裝過程中遇到任何意外情況，或者您需要維護 PC 使其恢復至最原始的乾淨狀態，我們新增了重置指令檔：
 
-### 2. 視覺運動與 3D UI 專家 (`13-antigravity-design-expert`)
-* 專注於開發具有「Antigravity 風格」的極致視覺網頁。包含 buttery-smooth 的 **GSAP 動畫**、**3D CSS 旋轉與 perspective**、**高級毛玻璃效果 (Glassmorphism)** 和高水準的微動態 UI 組件，讓您的前端介面達到 premium 級別。
-
-### 3. 智慧技能調度器與流程大師 (`14-skill-orchestrator` & `15-workflows`)
-* **`skill-orchestrator`** 是一個元技能（Meta-skill），能動態辨識任務複雜度，並智慧組合、調用多個 MCP 服務（如 WPS+Firecrawl），避免資源浪費。
-* **`workflows`** 則內建了「交付一個 SaaS 項目」、「執行安全審計」等一系列大師級指導步驟，能一步步指引助理產出完美交付物。
+```powershell
+.\reset_antigravity.ps1
+```
+**作用：**
+執行此命令後，腳本會安全刪除 `$env:USERPROFILE\.gemini` 與 `$env:USERPROFILE\.antigravity` 等核心暫存與設定檔資料夾，將系統重置為初始狀態。隨後您可以再次使用 `setup_antigravity.ps1` 進行全新乾淨安裝。
 
 ---
 
 ## 🔐 安全防護原則
-* 本倉庫**不存儲**任何個人帳號的 `GITHUB_TOKEN`、`FIRECRAWL_API_KEY`、Firebase Admin 密鑰或 NotebookLM 緩存，所有敏感性帳號均引導在還原後透過 OAuth 一次性安全登入，確保您的資訊安全。
+* 本倉庫**不存儲**任何個人帳號的 `GITHUB_TOKEN`、`FIRECRAWL_API_KEY` 等密鑰，腳本將在安裝時以安全對話方塊要求輸入（或引導登入），確保您的資訊安全。
 * 當您變更了新的本地 MCP 服務時，可以直接提交更新到本 GitHub 倉庫，方便永久同步維護您的專屬 AI 助理環境！

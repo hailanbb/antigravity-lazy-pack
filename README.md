@@ -12,16 +12,17 @@
 ├── setup_antigravity.ps1     # 🚀 全新 PC 三階段一鍵自動還原腳本 (修復 MCP 面板不可見問題)
 ├── reset_antigravity.ps1     # 🧹 【新增】環境強制清理與重置腳本 (用於還原初始狀態與 PC 維護)
 ├── 09-AntiGravity專屬懶人包.md # 詳細的服務連接教學手冊
-└── skills/                   # 各項還原模組獨立技能庫
+├── mcps/                     # 🔌 MCP 伺服器連接與設定指南
+│   ├── 01-notebooklm         # 連接 NotebookLM MCP
+│   ├── 03-firebase           # 連接 Firebase MCP
+│   ├── 07-wps-office         # 部署客製化 WPS Office MCP 操作伺服器
+│   └── 08-firecrawl          # 部署 Firecrawl MCP 全域爬蟲
+└── skills/                   # 🧠 核心能力與自動化工作流程模組
     ├── 00-install-all        # 一次安裝原版基礎技能
-    ├── 01-notebooklm         # 連接 NotebookLM MCP
     ├── 02-github             # 連接 GitHub CLI 授權
-    ├── 03-firebase           # 連接 Firebase MCP
     ├── 04-draw               # 生圖指引
     ├── 05-workflow           # 自動化開工/收工/專案初始化
     ├── 06-env-setup          # 部署 Git, Node.js, Python, gh-cli 環境
-    ├── 07-wps-office         # 部署客製化 WPS Office MCP 操作伺服器
-    ├── 08-firecrawl          # 部署 Firecrawl MCP 全域爬蟲
     ├── 09-antigravity-app    # 還原全域 argv/mcp.json 設定及中文語言包
     ├── 10-install-all-premium# 一鍵部署上述全部 Premium 設定
     ├── 11-chinese-localization# 離線一鍵漢化與還原可視化管理控制台
@@ -30,6 +31,11 @@
     ├── 14-antigravity-skill-orchestrator # 🤖 技能調度協調器 (動態多工協同)
     └── 15-antigravity-workflows # 🚀 SaaS MVP / 安全審計流程策劃大師
 ```
+
+**💡 目錄說明：**
+- **`mcps/`**: 包含所有與 Model Context Protocol (MCP) 相關的伺服器模組，用於賦予 AI 助理連接外部工具（如爬蟲、WPS、Firebase）的**物理執行能力**。
+- **`skills/`**: 包含指導 AI 助理的提示詞與流程知識庫（SKILLS），賦予 AI 助理處理特定任務（如介面設計、安全審計）的**大腦思考能力**。
+- *註：腳本安裝時會自動將上述兩者的指南統一註冊到使用者的全域技能庫中。*
 
 ---
 

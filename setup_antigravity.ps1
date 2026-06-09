@@ -1,4 +1,4 @@
-﻿# Antigravity 全新 PC 一鍵還原與環境部署指令檔
+# Antigravity 全新 PC 一鍵還原與環境部署指令檔
 # 適用系統: Windows 10 / Windows 11
 # 語系: 繁體中文 / 簡體中文
 
@@ -103,34 +103,40 @@ if (-not (Test-Path $GlobalSkillsPath)) {
     New-Item -ItemType Directory -Path $GlobalSkillsPath -Force | Out-Null
 }
 
-$RepoSkillsPath = Join-Path $PSScriptRoot "skills"
+$SourceFolders = @("skills", "mcps")
 $Phase2Pass = $false
+$SkillsFound = $false
 
-if (Test-Path $RepoSkillsPath) {
-    $SkillDirs = Get-ChildItem -Path $RepoSkillsPath -Directory
-    if ($SkillDirs.Count -gt 0) {
-        foreach ($dir in $SkillDirs) {
-            $SkillDirName = $dir.Name
-            $CleanName = $SkillDirName -replace '^\d+-'
-            $SrcSkillMd = Join-Path $dir.FullName "SKILL.md"
-            $DestSkillMd = Join-Path $GlobalSkillsPath "$CleanName.md"
-            
-            if (Test-Path $SrcSkillMd) {
-                Copy-Item -Path $SrcSkillMd -Destination $DestSkillMd -Force
-                Write-Host "  已安裝技能描述: $CleanName.md" -ForegroundColor Green
+foreach ($folder in $SourceFolders) {
+    $RepoSkillsPath = Join-Path $PSScriptRoot $folder
+    if (Test-Path $RepoSkillsPath) {
+        $SkillDirs = Get-ChildItem -Path $RepoSkillsPath -Directory
+        if ($SkillDirs.Count -gt 0) {
+            $SkillsFound = $true
+            foreach ($dir in $SkillDirs) {
+                $SkillDirName = $dir.Name
+                $CleanName = $SkillDirName -replace '^\d+-'
+                $SrcSkillMd = Join-Path $dir.FullName "SKILL.md"
+                $DestSkillMd = Join-Path $GlobalSkillsPath "$CleanName.md"
+                
+                if (Test-Path $SrcSkillMd) {
+                    Copy-Item -Path $SrcSkillMd -Destination $DestSkillMd -Force
+                    Write-Host "  已安裝技能描述: $CleanName.md" -ForegroundColor Green
+                }
+                
+                $DestSkillFolder = Join-Path $GlobalSkillsPath "$CleanName-v1"
+                Copy-Item -Path $dir.FullName -Destination $DestSkillFolder -Recurse -Force | Out-Null
             }
-            
-            $DestSkillFolder = Join-Path $GlobalSkillsPath "$CleanName-v1"
-            Copy-Item -Path $dir.FullName -Destination $DestSkillFolder -Recurse -Force | Out-Null
         }
-        $Phase2Pass = $true
     } else {
-        Write-Host "  [提示] skills 目錄為空，沒有需要部署的技能。" -ForegroundColor Gray
-        $Phase2Pass = $true
+        Write-Host "  [提示] 未能在倉庫中找到 $folder 目錄。" -ForegroundColor Gray
     }
+}
+
+if ($SkillsFound) {
+    $Phase2Pass = $true
 } else {
-    Write-Host "  [!] 未能在倉庫中找到 skills 目錄，跳過自定義技能部署。" -ForegroundColor Yellow
-    # 這裡仍然放行，因為可能用戶真的沒放 skill
+    Write-Host "  [提示] 倉庫中沒有需要部署的技能。" -ForegroundColor Gray
     $Phase2Pass = $true
 }
 
